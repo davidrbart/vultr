@@ -1,0 +1,11 @@
+PermitRootLogin yes
+
+Match User got
+    PasswordAuthentication yes
+    PermitEmptyPasswords yes
+    DisableForwarding yes
+    PermitTTY no
+
+Match User david
+    DisableForwarding yes
+    PermitTTY no

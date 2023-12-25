@@ -1,0 +1,24 @@
+#!/bin/sh -e
+
+pkg_add got gotd gotwebd
+
+cp ./*.conf '/etc'
+cp './sshd_config' '/etc/ssh/'
+
+mkdir -m 700 -p '/etc/acme/' '/etc/ssl/acme/private'
+mkdir -m 755 -p '/var/www/acme'
+temp=$(mktemp)
+crontab -l > $temp
+printf '05\t3\t*\t*\t*\tacme-client davidbart.ch && rcctl reload httpd\n' >> $temp
+crontab $temp
+
+useradd -m -p got -s /usr/local/bin/gotsh got
+useradd -m -p '$2b$10$Zd0ow6Ev0V/KeAEzm7e30.4d9/f1eG777QfkRv2kRIlBPwJW4CB.q' -s /usr/local/bin/gotsh david
+sed -i 's/got:got:/got::/' '/etc/passwd'
+
+httpd -n && rcctl enable httpd && rcctl start httpd
+sshd -G && rcctl restart sshd
+gotd -n && rcctl enable gotd && rcctl start gotd
+gotwebd -n && rcctl enable gotwebd && rcctl start gotwebd
+
+acme-client -v davidbart.ch && rcctl reload httpd
